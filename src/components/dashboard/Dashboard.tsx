@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -11,10 +13,88 @@ import {
 } from "lucide-react";
 
 const Dashboard = () => {
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [todaysSales, setTodaysSales] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [recentSales, setRecentSales] = useState<any[]>([]);
+  const [lowStockItems, setLowStockItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch total revenue from all sales
+      const { data: salesData } = await supabase
+        .from('sales')
+        .select('total_amount');
+      
+      const revenue = salesData?.reduce((sum, sale) => sum + Number(sale.total_amount), 0) || 0;
+      setTotalRevenue(revenue);
+
+      // Fetch today's sales
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todaySalesData } = await supabase
+        .from('sales')
+        .select('total_amount')
+        .gte('created_at', today);
+      
+      const todayRevenue = todaySalesData?.reduce((sum, sale) => sum + Number(sale.total_amount), 0) || 0;
+      setTodaysSales(todayRevenue);
+
+      // Fetch total products
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('id');
+      
+      setTotalProducts(productsData?.length || 0);
+
+      // Fetch low stock items
+      const { data: lowStockData } = await supabase
+        .from('products')
+        .select('id, name, quantity, categories(name)')
+        .lte('quantity', 10)
+        .order('quantity', { ascending: true });
+      
+      setLowStockCount(lowStockData?.length || 0);
+      setLowStockItems(lowStockData?.slice(0, 3) || []);
+
+      // Fetch recent sales with product details
+      const { data: recentSalesData } = await supabase
+        .from('sales')
+        .select(`
+          id,
+          total_amount,
+          created_at,
+          sale_items(
+            quantity,
+            products(name)
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      const formattedSales = recentSalesData?.map(sale => ({
+        id: sale.id,
+        product: sale.sale_items?.[0]?.products?.name || 'Multiple items',
+        customer: 'Customer',
+        amount: `$${Number(sale.total_amount).toFixed(2)}`,
+        time: new Date(sale.created_at).toLocaleTimeString()
+      })) || [];
+      
+      setRecentSales(formattedSales);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
+
   const stats = [
     {
       title: "Total Revenue",
-      value: "$12,847",
+      value: `$${totalRevenue.toFixed(2)}`,
       change: "+12.5%",
       trend: "up",
       icon: DollarSign,
@@ -22,7 +102,7 @@ const Dashboard = () => {
     },
     {
       title: "Products in Stock",
-      value: "1,234",
+      value: totalProducts.toString(),
       change: "-2.3%",
       trend: "down",
       icon: Package,
@@ -30,7 +110,7 @@ const Dashboard = () => {
     },
     {
       title: "Sales Today",
-      value: "$1,247",
+      value: `$${todaysSales.toFixed(2)}`,
       change: "+8.2%",
       trend: "up",
       icon: ShoppingCart,
@@ -38,25 +118,12 @@ const Dashboard = () => {
     },
     {
       title: "Low Stock Alerts",
-      value: "3",
+      value: lowStockCount.toString(),
       change: "Critical",
       trend: "warning",
       icon: AlertTriangle,
       color: "warning"
     }
-  ];
-
-  const recentSales = [
-    { id: "001", product: "Wireless Headphones", customer: "John Doe", amount: "$149.99", time: "2 min ago" },
-    { id: "002", product: "Smartphone Case", customer: "Jane Smith", amount: "$24.99", time: "5 min ago" },
-    { id: "003", product: "USB Cable", customer: "Mike Johnson", amount: "$12.99", time: "8 min ago" },
-    { id: "004", product: "Power Bank", customer: "Sarah Wilson", amount: "$39.99", time: "12 min ago" },
-  ];
-
-  const lowStockItems = [
-    { name: "iPhone 15 Cases", current: 3, minimum: 10, category: "Accessories" },
-    { name: "Bluetooth Speakers", current: 1, minimum: 5, category: "Audio" },
-    { name: "Lightning Cables", current: 2, minimum: 15, category: "Cables" },
   ];
 
   return (
@@ -152,21 +219,21 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium text-foreground">{item.name}</p>
                   <span className="text-xs bg-warning/20 text-warning px-2 py-1 rounded">
-                    {item.category}
+                    {item.categories?.name || 'N/A'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Current: <span className="font-medium text-warning">{item.current}</span>
+                    Current: <span className="font-medium text-warning">{item.quantity}</span>
                   </span>
                   <span className="text-muted-foreground">
-                    Min: <span className="font-medium">{item.minimum}</span>
+                    Min: <span className="font-medium">10</span>
                   </span>
                 </div>
                 <div className="mt-2 w-full bg-muted/50 rounded-full h-2">
                   <div 
                     className="bg-warning h-2 rounded-full"
-                    style={{ width: `${(item.current / item.minimum) * 100}%` }}
+                    style={{ width: `${(item.quantity / 10) * 100}%` }}
                   />
                 </div>
               </div>

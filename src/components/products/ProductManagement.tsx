@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Plus, 
   Search, 
@@ -20,60 +21,72 @@ interface Product {
   name: string;
   category: string;
   quantity: number;
-  costPrice: number;
-  sellingPrice: number;
+  cost_price: number;
+  selling_price: number;
   status: "in-stock" | "low-stock" | "out-of-stock";
 }
 
 const ProductManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>(["all"]);
 
-  // Mock data
-  const products: Product[] = [
-    {
-      id: "1",
-      barcode: "1234567890123",
-      name: "Wireless Bluetooth Headphones",
-      category: "Electronics",
-      quantity: 25,
-      costPrice: 75.00,
-      sellingPrice: 149.99,
-      status: "in-stock"
-    },
-    {
-      id: "2",
-      barcode: "1234567890124",
-      name: "Smartphone Protective Case",
-      category: "Accessories",
-      quantity: 3,
-      costPrice: 8.50,
-      sellingPrice: 24.99,
-      status: "low-stock"
-    },
-    {
-      id: "3",
-      barcode: "1234567890125",
-      name: "USB-C Charging Cable",
-      category: "Cables",
-      quantity: 0,
-      costPrice: 3.25,
-      sellingPrice: 12.99,
-      status: "out-of-stock"
-    },
-    {
-      id: "4",
-      barcode: "1234567890126",
-      name: "Portable Power Bank",
-      category: "Accessories",
-      quantity: 15,
-      costPrice: 18.00,
-      sellingPrice: 39.99,
-      status: "in-stock"
-    },
-  ];
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
-  const categories = ["all", "Electronics", "Accessories", "Cables"];
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          barcode,
+          name,
+          quantity,
+          cost_price,
+          selling_price,
+          status,
+          categories(name)
+        `)
+        .order('name');
+
+      if (error) throw error;
+
+      const formattedProducts = data?.map(product => ({
+        id: product.id,
+        barcode: product.barcode,
+        name: product.name,
+        category: product.categories?.name || 'Uncategorized',
+        quantity: product.quantity,
+        cost_price: Number(product.cost_price),
+        selling_price: Number(product.selling_price),
+        status: product.status as "in-stock" | "low-stock" | "out-of-stock"
+      })) || [];
+
+      setProducts(formattedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('name')
+        .order('name');
+
+      if (error) throw error;
+
+      const categoryNames = data?.map(cat => cat.name) || [];
+      setCategories(['all', ...categoryNames]);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -188,16 +201,16 @@ const ProductManagement = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Cost Price:</span>
-                  <span className="font-medium">${product.costPrice.toFixed(2)}</span>
+                  <span className="font-medium">${product.cost_price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Selling Price:</span>
-                  <span className="font-medium text-success">${product.sellingPrice.toFixed(2)}</span>
+                  <span className="font-medium text-success">${product.selling_price.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Profit Margin:</span>
                   <span className="font-medium text-primary">
-                    {(((product.sellingPrice - product.costPrice) / product.costPrice) * 100).toFixed(1)}%
+                    {(((product.selling_price - product.cost_price) / product.cost_price) * 100).toFixed(1)}%
                   </span>
                 </div>
               </div>

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Scan, 
   Plus, 
@@ -26,13 +27,24 @@ const PointOfSale = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [customerMoney, setCustomerMoney] = useState("");
+  const [products, setProducts] = useState<any[]>([]);
 
-  // Mock product database
-  const products = {
-    "1234567890123": { name: "Wireless Bluetooth Headphones", price: 149.99 },
-    "1234567890124": { name: "Smartphone Protective Case", price: 24.99 },
-    "1234567890125": { name: "USB-C Charging Cable", price: 12.99 },
-    "1234567890126": { name: "Portable Power Bank", price: 39.99 },
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, barcode, name, selling_price, quantity')
+        .gt('quantity', 0);
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
@@ -40,20 +52,20 @@ const PointOfSale = () => {
   const total = subtotal + tax;
   const change = customerMoney ? Math.max(0, parseFloat(customerMoney) - total) : 0;
 
-  const handleBarcodeSubmit = (e: React.FormEvent) => {
+  const handleBarcodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!barcodeInput.trim()) return;
 
-    const product = products[barcodeInput as keyof typeof products];
-    if (product) {
-      addToCart(barcodeInput, product.name, product.price);
+    const product = products.find(p => p.barcode === barcodeInput);
+    if (product && product.quantity > 0) {
+      addToCart(product.id, barcodeInput, product.name, Number(product.selling_price));
       setBarcodeInput("");
     } else {
-      alert("Product not found!");
+      alert("Product not found or out of stock!");
     }
   };
 
-  const addToCart = (barcode: string, name: string, price: number) => {
+  const addToCart = (productId: string, barcode: string, name: string, price: number) => {
     setCartItems(prev => {
       const existingItem = prev.find(item => item.barcode === barcode);
       if (existingItem) {
@@ -64,7 +76,7 @@ const PointOfSale = () => {
         );
       } else {
         return [...prev, {
-          id: Date.now().toString(),
+          id: productId,
           barcode,
           name,
           price,
@@ -94,7 +106,7 @@ const PointOfSale = () => {
     setCartItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const completeSale = () => {
+  const completeSale = async () => {
     if (cartItems.length === 0) {
       alert("Cart is empty!");
       return;
@@ -105,14 +117,61 @@ const PointOfSale = () => {
       return;
     }
 
-    // Here you would normally:
-    // 1. Update inventory quantities
-    // 2. Record sale in database
-    // 3. Print receipt
-    
-    alert(`Sale completed! Change: $${change.toFixed(2)}`);
-    setCartItems([]);
-    setCustomerMoney("");
+    try {
+      // Record sale in database
+      const { data: sale, error: saleError } = await supabase
+        .from('sales')
+        .insert({
+          total_amount: total,
+          customer_payment: parseFloat(customerMoney),
+          change_amount: change
+        })
+        .select()
+        .single();
+
+      if (saleError) throw saleError;
+
+      // Record sale items
+      const saleItems = cartItems.map(item => ({
+        sale_id: sale.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        unit_price: item.price,
+        total_price: item.total
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('sale_items')
+        .insert(saleItems);
+
+      if (itemsError) throw itemsError;
+
+      // Update inventory quantities
+      for (const item of cartItems) {
+        const { data: product } = await supabase
+          .from('products')
+          .select('quantity')
+          .eq('id', item.id)
+          .single();
+        
+        if (product) {
+          await supabase
+            .from('products')
+            .update({ 
+              quantity: product.quantity - item.quantity 
+            })
+            .eq('id', item.id);
+        }
+      }
+
+      alert(`Sale completed! Change: $${change.toFixed(2)}`);
+      setCartItems([]);
+      setCustomerMoney("");
+      fetchProducts(); // Refresh product list
+    } catch (error) {
+      console.error('Error completing sale:', error);
+      alert('Error completing sale. Please try again.');
+    }
   };
 
   return (
@@ -294,16 +353,16 @@ const PointOfSale = () => {
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Quick Add</h3>
           <div className="grid grid-cols-1 gap-2">
-            {Object.entries(products).map(([barcode, product]) => (
+            {products.slice(0, 5).map((product) => (
               <Button
-                key={barcode}
+                key={product.id}
                 variant="outline"
                 className="justify-start text-left h-auto p-3"
-                onClick={() => addToCart(barcode, product.name, product.price)}
+                onClick={() => addToCart(product.id, product.barcode, product.name, Number(product.selling_price))}
               >
                 <div>
                   <p className="font-medium text-sm">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">${product.price.toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">${Number(product.selling_price).toFixed(2)}</p>
                 </div>
               </Button>
             ))}
