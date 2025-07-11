@@ -1,0 +1,181 @@
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Package, 
+  DollarSign, 
+  ShoppingCart,
+  AlertTriangle,
+  Eye
+} from "lucide-react";
+
+const Dashboard = () => {
+  const stats = [
+    {
+      title: "Total Revenue",
+      value: "$12,847",
+      change: "+12.5%",
+      trend: "up",
+      icon: DollarSign,
+      color: "success"
+    },
+    {
+      title: "Products in Stock",
+      value: "1,234",
+      change: "-2.3%",
+      trend: "down",
+      icon: Package,
+      color: "primary"
+    },
+    {
+      title: "Sales Today",
+      value: "$1,247",
+      change: "+8.2%",
+      trend: "up",
+      icon: ShoppingCart,
+      color: "success"
+    },
+    {
+      title: "Low Stock Alerts",
+      value: "3",
+      change: "Critical",
+      trend: "warning",
+      icon: AlertTriangle,
+      color: "warning"
+    }
+  ];
+
+  const recentSales = [
+    { id: "001", product: "Wireless Headphones", customer: "John Doe", amount: "$149.99", time: "2 min ago" },
+    { id: "002", product: "Smartphone Case", customer: "Jane Smith", amount: "$24.99", time: "5 min ago" },
+    { id: "003", product: "USB Cable", customer: "Mike Johnson", amount: "$12.99", time: "8 min ago" },
+    { id: "004", product: "Power Bank", customer: "Sarah Wilson", amount: "$39.99", time: "12 min ago" },
+  ];
+
+  const lowStockItems = [
+    { name: "iPhone 15 Cases", current: 3, minimum: 10, category: "Accessories" },
+    { name: "Bluetooth Speakers", current: 1, minimum: 5, category: "Audio" },
+    { name: "Lightning Cables", current: 2, minimum: 15, category: "Cables" },
+  ];
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+        </div>
+        <Button variant="premium" className="animate-scale-in">
+          <Eye className="h-4 w-4 mr-2" />
+          View Full Report
+        </Button>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index} className="p-6 bg-gradient-card hover:shadow-elevated transition-all duration-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                  <div className="flex items-center mt-2">
+                    {stat.trend === "up" && <TrendingUp className="h-4 w-4 text-success mr-1" />}
+                    {stat.trend === "down" && <TrendingDown className="h-4 w-4 text-destructive mr-1" />}
+                    {stat.trend === "warning" && <AlertTriangle className="h-4 w-4 text-warning mr-1" />}
+                    <span className={`text-sm font-medium ${
+                      stat.trend === "up" ? "text-success" : 
+                      stat.trend === "down" ? "text-destructive" : 
+                      "text-warning"
+                    }`}>
+                      {stat.change}
+                    </span>
+                  </div>
+                </div>
+                <div className={`p-3 rounded-lg ${
+                  stat.color === "success" ? "bg-success/10" :
+                  stat.color === "primary" ? "bg-primary/10" :
+                  "bg-warning/10"
+                }`}>
+                  <Icon className={`h-6 w-6 ${
+                    stat.color === "success" ? "text-success" :
+                    stat.color === "primary" ? "text-primary" :
+                    "text-warning"
+                  }`} />
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Sales */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Recent Sales</h3>
+            <Button variant="outline" size="sm">View All</Button>
+          </div>
+          <div className="space-y-4">
+            {recentSales.map((sale) => (
+              <div key={sale.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div>
+                  <p className="font-medium text-foreground">{sale.product}</p>
+                  <p className="text-sm text-muted-foreground">{sale.customer}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">{sale.amount}</p>
+                  <p className="text-xs text-muted-foreground">{sale.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Low Stock Alerts */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Low Stock Alerts</h3>
+            <Button variant="warning" size="sm">
+              <AlertTriangle className="h-4 w-4 mr-1" />
+              Reorder
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {lowStockItems.map((item, index) => (
+              <div key={index} className="p-3 border border-warning/20 bg-warning/5 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-foreground">{item.name}</p>
+                  <span className="text-xs bg-warning/20 text-warning px-2 py-1 rounded">
+                    {item.category}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Current: <span className="font-medium text-warning">{item.current}</span>
+                  </span>
+                  <span className="text-muted-foreground">
+                    Min: <span className="font-medium">{item.minimum}</span>
+                  </span>
+                </div>
+                <div className="mt-2 w-full bg-muted/50 rounded-full h-2">
+                  <div 
+                    className="bg-warning h-2 rounded-full"
+                    style={{ width: `${(item.current / item.minimum) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
