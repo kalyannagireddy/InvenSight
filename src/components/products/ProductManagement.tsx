@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import AddProductDialog from "./AddProductDialog";
+import EditProductDialog from "./EditProductDialog";
 import { 
   Plus, 
   Search, 
@@ -31,6 +34,9 @@ const ProductManagement = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>(["all"]);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchProducts();
@@ -88,6 +94,38 @@ const ProductManagement = () => {
     }
   };
 
+  const deleteProduct = async (productId: string, productName: string) => {
+    if (!confirm(`Are you sure you want to delete "${productName}"?`)) return;
+    
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Product deleted successfully",
+        description: `${productName} has been removed from your inventory.`,
+      });
+
+      fetchProducts();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditProduct(product);
+    setEditDialogOpen(true);
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "in-stock":
@@ -131,10 +169,10 @@ const ProductManagement = () => {
           <h1 className="text-2xl font-bold text-foreground">Product Management</h1>
           <p className="text-muted-foreground">Manage your inventory and product details</p>
         </div>
-        <Button variant="premium" className="animate-scale-in">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Product
-        </Button>
+        <AddProductDialog 
+          categories={categories} 
+          onProductAdded={fetchProducts}
+        />
       </div>
 
       {/* Filters */}
@@ -217,11 +255,20 @@ const ProductManagement = () => {
 
               {/* Actions */}
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleEditProduct(product)}
+                >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
-                <Button variant="destructive" size="sm">
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => deleteProduct(product.id, product.name)}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -241,12 +288,27 @@ const ProductManagement = () => {
               : "Get started by adding your first product"
             }
           </p>
-          <Button variant="default">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+          <AddProductDialog 
+            categories={categories} 
+            onProductAdded={fetchProducts}
+            trigger={
+              <Button variant="default">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            }
+          />
         </Card>
       )}
+
+      {/* Edit Product Dialog */}
+      <EditProductDialog
+        product={editProduct}
+        categories={categories}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onProductUpdated={fetchProducts}
+      />
     </div>
   );
 };

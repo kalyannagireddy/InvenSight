@@ -340,7 +340,11 @@ const PointOfSale = () => {
                   <Calculator className="h-4 w-4 mr-1" />
                   Calculator
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCartItems([])}
+                >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Clear Cart
                 </Button>

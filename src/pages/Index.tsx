@@ -4,6 +4,11 @@ import Sidebar from "@/components/layout/Sidebar";
 import Dashboard from "@/components/dashboard/Dashboard";
 import ProductManagement from "@/components/products/ProductManagement";
 import PointOfSale from "@/components/pos/PointOfSale";
+import AlertsPage from "@/components/alerts/AlertsPage";
+import ReportsPage from "@/components/reports/ReportsPage";
+import SuppliersPage from "@/components/suppliers/SuppliersPage";
+import StockPage from "@/components/stock/StockPage";
+import SettingsPage from "@/components/settings/SettingsPage";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -17,40 +22,15 @@ const Index = () => {
       case "pos":
         return <PointOfSale />;
       case "stock":
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Stock Updates</h2>
-            <p className="text-muted-foreground">Feature coming soon...</p>
-          </div>
-        );
+        return <StockPage />;
       case "alerts":
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Alerts & Notifications</h2>
-            <p className="text-muted-foreground">Feature coming soon...</p>
-          </div>
-        );
+        return <AlertsPage />;
       case "reports":
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Reports & Analytics</h2>
-            <p className="text-muted-foreground">Feature coming soon...</p>
-          </div>
-        );
+        return <ReportsPage />;
       case "suppliers":
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Supplier Management</h2>
-            <p className="text-muted-foreground">Feature coming soon...</p>
-          </div>
-        );
+        return <SuppliersPage />;
       case "settings":
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Settings</h2>
-            <p className="text-muted-foreground">Feature coming soon...</p>
-          </div>
-        );
+        return <SettingsPage />;
       default:
         return <Dashboard />;
     }
