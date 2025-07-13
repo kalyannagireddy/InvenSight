@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import Dashboard from "@/components/dashboard/Dashboard";
@@ -12,6 +12,25 @@ import SettingsPage from "@/components/settings/SettingsPage";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.substring(1);
+      if (hash && ['dashboard', 'products', 'pos', 'stock', 'alerts', 'reports', 'suppliers', 'settings'].includes(hash)) {
+        setActiveSection(hash);
+      }
+    };
+
+    // Handle initial hash
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
 
   const renderContent = () => {
     switch (activeSection) {

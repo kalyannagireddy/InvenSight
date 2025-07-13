@@ -134,7 +134,7 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
         </div>
-        <Button variant="premium" className="animate-scale-in">
+        <Button variant="premium" className="animate-scale-in" onClick={() => window.location.href = '#reports'}>
           <Eye className="h-4 w-4 mr-2" />
           View Full Report
         </Button>
@@ -186,7 +186,7 @@ const Dashboard = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">Recent Sales</h3>
-            <Button variant="outline" size="sm">View All</Button>
+            <Button variant="outline" size="sm" onClick={() => window.location.href = '#pos'}>View All</Button>
           </div>
           <div className="space-y-4">
             {recentSales.map((sale) => (
@@ -208,7 +208,7 @@ const Dashboard = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">Low Stock Alerts</h3>
-            <Button variant="warning" size="sm">
+            <Button variant="warning" size="sm" onClick={() => window.location.href = '#stock'}>
               <AlertTriangle className="h-4 w-4 mr-1" />
               Reorder
             </Button>

@@ -50,7 +50,10 @@ const Sidebar = ({ activeSection, onSectionChange }: SidebarProps) => {
               className={`w-full justify-start h-11 ${
                 isActive ? "shadow-sm" : ""
               }`}
-              onClick={() => onSectionChange(item.id)}
+              onClick={() => {
+                window.location.hash = item.id;
+                onSectionChange(item.id);
+              }}
             >
               <Icon className="h-4 w-4 mr-3" />
               <span className="flex-1 text-left">{item.label}</span>

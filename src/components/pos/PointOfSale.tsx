@@ -336,7 +336,23 @@ const PointOfSale = () => {
               </Button>
               
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const result = prompt("Enter calculation (e.g., 25.50 + 12.75):");
+                    if (result) {
+                      try {
+                        const calculated = eval(result);
+                        if (typeof calculated === 'number' && !isNaN(calculated)) {
+                          setCustomerMoney(calculated.toFixed(2));
+                        }
+                      } catch (e) {
+                        alert("Invalid calculation");
+                      }
+                    }
+                  }}
+                >
                   <Calculator className="h-4 w-4 mr-1" />
                   Calculator
                 </Button>

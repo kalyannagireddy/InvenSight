@@ -201,7 +201,15 @@ const ProductManagement = () => {
                 </option>
               ))}
             </select>
-            <Button variant="outline" size="icon">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("all");
+              }}
+              title="Clear all filters"
+            >
               <Filter className="h-4 w-4" />
             </Button>
           </div>
