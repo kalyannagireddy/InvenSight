@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Plus, 
   Search, 
@@ -15,60 +17,93 @@ import {
   Users
 } from "lucide-react";
 
-// We'll create a suppliers table in the future, for now showing placeholder data
 interface Supplier {
   id: string;
   name: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  address: string;
+  contact_person: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
   status: "active" | "inactive";
   products_count: number;
 }
 
-const mockSuppliers: Supplier[] = [
-  {
-    id: "1",
-    name: "Global Electronics Supply",
-    contact_person: "John Smith",
-    email: "john@globalsupply.com",
-    phone: "+1-555-0123",
-    address: "123 Industrial Ave, New York, NY",
-    status: "active",
-    products_count: 45
-  },
-  {
-    id: "2",
-    name: "Fresh Foods Distributor",
-    contact_person: "Sarah Johnson",
-    email: "sarah@freshfoods.com",
-    phone: "+1-555-0456",
-    address: "456 Market St, Los Angeles, CA",
-    status: "active",
-    products_count: 23
-  },
-  {
-    id: "3",
-    name: "Office Supplies Co.",
-    contact_person: "Mike Brown",
-    email: "mike@officesupplies.com",
-    phone: "+1-555-0789",
-    address: "789 Business Blvd, Chicago, IL",
-    status: "inactive",
-    products_count: 12
-  }
-];
-
 const SuppliersPage = () => {
-  const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const { isAdmin } = useAuth();
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const fetchSuppliers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      
+      const formattedSuppliers = data?.map(supplier => ({
+        ...supplier,
+        status: supplier.status as "active" | "inactive"
+      })) || [];
+      
+      setSuppliers(formattedSuppliers);
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch suppliers. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteSupplier = async (supplierId: string, supplierName: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can delete suppliers.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete "${supplierName}"?`)) return;
+    
+    try {
+      const { error } = await supabase
+        .from('suppliers')
+        .delete()
+        .eq('id', supplierId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Supplier deleted successfully",
+        description: `${supplierName} has been removed.`,
+      });
+
+      fetchSuppliers();
+    } catch (error) {
+      console.error('Error deleting supplier:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete supplier. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (supplier.contact_person && supplier.contact_person.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (supplier.email && supplier.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusBadge = (status: string) => {
@@ -85,7 +120,12 @@ const SuppliersPage = () => {
           <h1 className="text-2xl font-bold text-foreground">Supplier Management</h1>
           <p className="text-muted-foreground">Manage your suppliers and vendor relationships</p>
         </div>
-        <Button variant="premium" className="animate-scale-in">
+        <Button 
+          variant="premium" 
+          className="animate-scale-in"
+          onClick={() => toast({ title: "Feature Coming Soon", description: "Add supplier functionality will be available soon." })}
+          disabled={!isAdmin}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add New Supplier
         </Button>
@@ -160,7 +200,7 @@ const SuppliersPage = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground mb-1">{supplier.name}</h3>
-                  <p className="text-sm text-muted-foreground">{supplier.contact_person}</p>
+                  <p className="text-sm text-muted-foreground">{supplier.contact_person || 'No contact person'}</p>
                 </div>
                 <Badge className={getStatusBadge(supplier.status)}>
                   {supplier.status.toUpperCase()}
@@ -171,15 +211,15 @@ const SuppliersPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{supplier.email}</span>
+                  <span className="text-foreground">{supplier.email || 'No email'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{supplier.phone}</span>
+                  <span className="text-foreground">{supplier.phone || 'No phone'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{supplier.address}</span>
+                  <span className="text-foreground">{supplier.address || 'No address'}</span>
                 </div>
               </div>
 
@@ -191,11 +231,22 @@ const SuppliersPage = () => {
 
               {/* Actions */}
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => toast({ title: "Feature Coming Soon", description: "Edit supplier functionality will be available soon." })}
+                  disabled={!isAdmin}
+                >
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
-                <Button variant="destructive" size="sm">
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => deleteSupplier(supplier.id, supplier.name)}
+                  disabled={!isAdmin}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -215,7 +266,11 @@ const SuppliersPage = () => {
               : "Get started by adding your first supplier"
             }
           </p>
-          <Button variant="default">
+          <Button 
+            variant="default"
+            onClick={() => toast({ title: "Feature Coming Soon", description: "Add supplier functionality will be available soon." })}
+            disabled={!isAdmin}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Supplier
           </Button>

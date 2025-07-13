@@ -85,6 +85,33 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sale_items: {
         Row: {
           created_at: string
@@ -154,6 +181,45 @@ export type Database = {
           id?: string
           payment_method?: string
           total_amount?: number
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          products_count: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          products_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          products_count?: number
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
