@@ -1,73 +1,47 @@
-# Welcome to your Lovable project
+# RetailFlow - Inventory Management System
 
-## Project info
+**RetailFlow** is a modern inventory management system tailored for retail businesses. It simplifies sales tracking, inventory control, and vendor management with a real-time dashboard and a sleek UI.
 
-**URL**: https://lovable.dev/projects/59a26d95-81e4-4a98-9eab-ccf0b3f098b2
+🔗 **Live Demo:** [stock-savvy-retailer.lovable.app](https://stock-savvy-retailer.lovable.app/)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🚀 Key Features
 
-**Use Lovable**
+- **Dashboard:** Real-time analytics for revenue, sales, and inventory
+- **Product Management:** Full CRUD support with barcode and category handling
+- **POS System:** Barcode-based checkout, multi-payment support
+- **Stock Alerts:** Auto low-stock detection and reorder prompts
+- **Reports & Analytics:** Sales summaries and business insights
+- **Suppliers:** Vendor tracking system
+- **Settings:** Custom system configurations
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/59a26d95-81e4-4a98-9eab-ccf0b3f098b2) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## ⚙️ Tech Stack
 
-**Use your preferred IDE**
+- **Frontend:** React 18 + TypeScript + Vite  
+- **UI:** Tailwind CSS + shadcn/ui components  
+- **Backend:** Supabase + PostgreSQL  
+- **State Management:** React Query  
+- **Routing:** React Router DOM (hash-based)  
+- **Auth:** Supabase Auth ready (optional integration)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🗄️ Database Overview
 
-Follow these steps:
+- **Products:** Barcode, price, quantity, category, and status  
+- **Categories:** Product classifications  
+- **Sales & Sale Items:** Transaction data and detailed line items  
+- **Suppliers:** Vendor details and relationships  
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 📦 Getting Started
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/your-username/retailflow.git
+cd retailflow
+npm install
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/59a26d95-81e4-4a98-9eab-ccf0b3f098b2) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
