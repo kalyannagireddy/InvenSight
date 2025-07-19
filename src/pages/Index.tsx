@@ -57,7 +57,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-dashboard">
-      <Header onSettingsClick={() => setActiveSection('settings')} />
+      <Header />
       
       <div className="flex h-[calc(100vh-80px)]">
         <Sidebar 
